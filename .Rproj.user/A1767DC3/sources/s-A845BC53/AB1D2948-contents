@@ -1,0 +1,151 @@
+##### Simulation of a network meta-analysis of binary data 
+####  from a random-effects model with multi-arm trials
+
+library('tidyverse');library('mtvnorm')
+
+### theoretical network (Warren p. 20 Model D and p.33)
+theo_network <- data.frame(treat1 = rep(1, 7), 
+                           treat2 = seq(2, 8, 1),
+                           theta = c(log(0.881), log(10), log(2.423),
+                                     log(2.279), log(2.253), log(4.110),
+                                     log(1.336)),
+                           n_trial = c(2, 2, 6, 3, 5, 2, 2))
+
+### spread into the network meta-analysis
+theo_nma <- theo_network %>%
+  rowwise() %>%
+  slice(rep(1:n(), times = n_trial)) %>%
+  data.frame() %>%
+  select(-n_trial)
+
+### add study id and number of patients per arm
+theo_nma <- theo_nma %>%
+  mutate(study.id = c(# 1 vs 2
+    "Maini 2004", "St. Clair 2004",
+    # 1 vs 3
+    "Maini 2004", "St. Clair 2004",
+    # 1 vs 4
+    "Ericson 1999", "Moreland 1999", 
+    "Genovese 2002",  "Combe 2006", 
+    "Van der Heijde 2006", "Weisman 2007/ Baumgartner 2004",
+    # 1 vs 5
+    "Ericson 1999", "Moreland 1999", "Genovese 2002",                 
+    # 1 vs 6
+    "Furst 2003", "Weinblatt 2003", "Keystone 2004", 
+    "Van de Putte 2004", "Breedveld 2006",                
+    # 1 vs 7
+    "Weinblatt 2003", "Van de Putte 2004",
+    # 1 vs 8
+    "Weinblatt 2003", "Van de Putte 2004"), 
+    n.arm1 = c(88, 291, 88, 291, 105, 80, 217, 50, 228, 269, 
+               105, 80, 217, 318, 62, 200, 110, 257, 62, 110, 62, 110), 
+    n.arm2 = c(86, 372, 254, 377, 111, 78, 207, 204, 454, 266, 
+               343, 76, 208, 318, 67, 419, 225, 542, 73, 103, 69, 106)) %>%
+  select(study.id, treat1, treat2, theta, n.arm1, n.arm2)
+
+### simulation
+repetitions <- 10000
+tau2 <- c(0.001, 0.5, 1, 2)^2
+set.seed(58982)
+
+simulated_scenarios <- list()
+for(v in 1:length(tau2)){
+  simulated_data <- list()
+  for(l in 1:repetitions){
+    simulated_nma <- c()
+    for(j in 1:length(unique(theo_nma$study.id))){
+      current.study.id <-  unique(theo_nma$study.id)[j]
+      current.study <- theo_nma[which(theo_nma$study.id == current.study.id),]
+      current.Sigma <- matrix(0.5*tau2[v], 
+                              ncol = nrow(current.study), 
+                              nrow = nrow(current.study)) + 
+        diag(0.5*tau2[v], nrow(current.study))
+      theta.i <- mvtnorm::rmvnorm(n = 1, 
+                                  mean = current.study$theta,
+                                  sigma = current.Sigma)
+      current.study <- current.study %>%
+        mutate(theta.i = as.vector(theta.i))
+      ### for DGM fixed modified
+      if(nrow(current.study) == 1){
+        fr <- function(x) {
+          (0.5 - x)^2 + ((x*exp(current.study$theta.i[1]))/
+                           (1 - x + x*exp(current.study$theta.i[1])) - 0.5)^2
+        }
+      }
+      if(nrow(current.study) == 2){
+        fr <- function(x) {
+          (0.5 - x)^2 + 
+            ((x*exp(current.study$theta.i[1]))/
+               (1 - x + x*exp(current.study$theta.i[1])) - 0.5)^2 + 
+            ((x*exp(current.study$theta.i[2]))/
+               (1 - x + x*exp(current.study$theta.i[2])) - 0.5)^2
+        }
+      }
+      if(nrow(current.study) == 3){
+        fr <- function(x) {
+          (0.5 - x)^2 + 
+            ((x*exp(current.study$theta.i[1]))/
+               (1 - x + x*exp(current.study$theta.i[1])) - 0.5)^2 + 
+            ((x*exp(current.study$theta.i[2]))/
+               (1 - x + x*exp(current.study$theta.i[2])) - 0.5)^2+ 
+            ((x*exp(current.study$theta.i[3]))/
+               (1 - x + x*exp(current.study$theta.i[3])) - 0.5)^2
+        }
+      }
+      current.pi.arm1 <- optimize(f = fr, interval = c(0, 1), 
+                                  maximum = FALSE)$minimum
+      current.study$pi.arm1.DGMmf <- rep(current.pi.arm1, 
+                                         nrow(current.study))
+      
+      current.study$x.arm1.DGMmf <- rbinom(n = 1, prob = current.pi.arm1, 
+                                           size = current.study$n.arm1[1])
+      current.study$pi.arm2.DGMmf <- (current.study$pi.arm1.DGMmf * 
+                                        exp(current.study$theta.i))/
+        (1 - current.study$pi.arm1.DGMmf +
+           current.study$pi.arm1.DGMmf * 
+           exp(current.study$theta.i))
+      
+      current.study$x.arm2.DGMmf <- rbinom(n = nrow(current.study), 
+                                           prob = current.study$pi.arm2.DGMmf, 
+                                           size = current.study$n.arm2) 
+      simulated_nma <- rbind(simulated_nma, current.study) 
+
+    }
+    
+    simulated_nma1 <- c() 
+    for(j in 1:length(unique(simulated_nma$study.id))){
+      current.study.id <-  unique(simulated_nma$study.id)[j]
+      current.study <- simulated_nma[which(simulated_nma$study.id == current.study.id),]
+      
+      current.pi.arm1 <- runif(n = 1, min = 0.4, max = 0.6)
+      current.study$pi.arm1.DGMf <- rep(current.pi.arm1, 
+                                         nrow(current.study))
+      
+      current.study$x.arm1.DGMf <- rbinom(n = 1, prob = current.pi.arm1, 
+                                           size = current.study$n.arm1[1])
+      current.study$pi.arm2.DGMf <- (current.study$pi.arm1.DGMf * 
+                                        exp(current.study$theta.i))/
+        (1 - current.study$pi.arm1.DGMf +
+           current.study$pi.arm1.DGMf * 
+           exp(current.study$theta.i))
+      
+      current.study$x.arm2.DGMf <- rbinom(n = nrow(current.study), 
+                                           prob = current.study$pi.arm2.DGMf, 
+                                           size = current.study$n.arm2) 
+      simulated_nma1 <- rbind(simulated_nma1, current.study) 
+
+    }
+    
+    simulated_nma <- cbind(simulated_nma, simulated_nma1$pi.arm1.DGMf,
+                           simulated_nma1$x.arm1.DGMf,
+                           simulated_nma1$pi.arm2.DGMf,
+                           simulated_nma1$x.arm2.DGMf)
+    
+    simulated_data[[l]] <- simulated_nma
+  }
+  simulated_scenarios[[v]] <- simulated_data
+} 
+
+
+setwd("D:/Seafile/SHG/Svenja/6.Manuskripte/Manuskript_DGM/submission_StatisticsInMedicine/revision/Code")
+save(simulated_scenarios, file = "simulated_scenarios_rev.RData")
