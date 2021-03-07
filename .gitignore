@@ -4,3 +4,6 @@
 .RHistory
 Bayes NMA outliers codes .Rproj
 *.Rproj
+.Rproj.user
+*Simulated_data/
+

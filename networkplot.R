@@ -1,26 +1,28 @@
 #### R function to produce network plots 
+
 # t1,t2 vectors of treatments (mandatory)
 # w.n, w.e weight factor for re-scaling of edge/node size (optional)
-# igraph arguments: layout_in_circle default, cex=1.0 default labels size etc.. (optional)
+# igraph arguments: layout_in_circle default, cex=1.0 default labels size etc (optional)
 
-networkplot = function(t1,
-                       t2, 
-                       w.n=1.2, 
-                       w.e=2,
-                       cexnodes=1.0,
+networkplot = function(t1, t2, 
+                       w.n=1.2, w.e=2,
+                       cexnodes=1.0, cexedges=1.4,
                        vertex.label.font=2,
-                       cexedges=1.4,
-                       vertex.label.dist=3,
+                       vertex.label.dist=0,
                        layout=layout_in_circle,
                        coloredges="gray60",
                        colornodes="blue",
                        nodesize=8,
-                       radscale=FALSE, 
+                       radscale=FALSE,
+                       vertexsize = FALSE,
                        weightnodes=FALSE,
-                       edgelabel=TRUE,
+                       edgelabel=FALSE,
                        totnnodes=n.vec, 
                        vnames=sort(V(g)$name)
 ){
+  if(!require(igraph)) {install.packages("igraph"); library(igraph)}
+  if(!require(dplyr)) {install.packages("dplyr"); library(dplyr)}
+  if(!require(plyr)) {install.packages("plyrplyr"); library(plyr)}
   
   edges = data.frame(t1,t2) 
   colnames(edges) = c("Source","Target")
@@ -45,7 +47,7 @@ networkplot = function(t1,
   sorted_edges_full = arrange(edges,edges$Source,edges$Target)
   colnames(sorted_edges_full) = c("Source","Target")
   edges_full = data.frame(ddply(sorted_edges_full,.(sorted_edges_full$Source,sorted_edges_full$Target),nrow))
-  colnames(edges_full) = c("Source","Targets","Weight")
+  colnames(edges_full) = c("Source","Target","Weight")
   
   adj.matrix = get.adjacency(graph.edgelist(as.matrix(sorted_edges_full), directed=FALSE),type="lower")
   adj.matrix = adj.matrix[order(rownames(adj.matrix)), order(colnames(adj.matrix))]
@@ -53,8 +55,7 @@ networkplot = function(t1,
   V(g)$name=sort(V(g)$name)
   
   if(weightnodes){
-    #deg = degree(g, mode="in") ## prop.to node degree 
-    V(g)$size = n.vec$nvec} else{ V(g)$size= rep(nodesize,length(nodes))} 
+    V(g)$size = n.vec$nvec} else{ V(g)$size= rep(nodesize,length(nodes))} ## deg = degree(g, mode="in")
   
   if(edgelabel){
     edgeweights=E(g)$weight
@@ -76,13 +77,20 @@ networkplot = function(t1,
       paste(strwrap(x,width=width,simplify = TRUE), collapse="\n")
     }))
   }
+  if(vertexsize){
+    vertex_size=(sqrt(V(g)$size)*1.2)
+  }else{vertex_size=25}
   
   plot.g =  plot(g, 
                  vertex.label=c(paste0(wrap_strings(vnames,6))),
-                 vertex.size=(sqrt(V(g)$size)*1.2), 
+                 vertex.size=vertex_size, 
                  edge.width=E(g)$weight*w.e,
                  vertex.label.font=vertex.label.font,
                  edge.label.font=2,
+                 vertex.color= 'cornflowerblue',
+                 vertex.label.color='white',
+                 edge.label.color='black',
+                 edge.color="gray80",
                  vertex.frame.color="white",
                  edge.frame.color="black",
                  vertex.label.family="Times", 
@@ -106,5 +114,3 @@ networkplot = function(t1,
   
   return(plot.g)
 }
-
-
