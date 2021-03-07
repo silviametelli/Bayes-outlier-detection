@@ -1,9 +1,10 @@
 .DS_Store
+generate_scenarios.R
 *.dta
 *.xlsx
 .RHistory
 Bayes NMA outliers codes .Rproj
 *.Rproj
-.Rproj.user
+.Rproj.user/
 *Simulated_data/
 
