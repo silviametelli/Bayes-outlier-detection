@@ -3,8 +3,6 @@ library(mvtnorm)
 
 #---------------------------------* generate data  *-----------------------------------#
 
-set.seed(123)
-
 simulate_nma_data <- function(data, n.iter=10000){
   
   tau2 <- c(0.000, 0.032, 0.096, 0.287)
@@ -45,7 +43,7 @@ simulate_nma_data <- function(data, n.iter=10000){
           studlab.temp$x2 <- rbinom(nrow(studlab.temp), prob=studlab.temp$p2, data$n2[j]) 
           nma <- rbind(nma, studlab.temp)
         } 
-        ## contamination (NB: assumes normal effect sizes - not heavy tail)
+        ## contamination (NB: assumes normal effect sizes - no heavy tail)
         se.max <- max(nma$se_theta)
         C1 <- 2*sqrt(se.max+tau2[t])
         C2 <- 3*sqrt(se.max+tau2[t])
@@ -146,15 +144,19 @@ data.D4 <- data.D4[order(data.D4$studlab), ]
 # *--------------------------- save scenarios ------------------------------* #
 
 ##D1
+set.seed(123)
 scenarios.S1_S8 = simulate_nma_data(data.D1, n.iter=1000)
 save(scenarios.S1_S8, file = "Simulated_Data/Scenarios_S1-S8.RData")
 ##D2
+set.seed(123)
 scenarios.S9_S16 = simulate_nma_data(data.D2, n.iter=1000)
 save(scenarios.S9_S16, file = "Simulated_Data/Scenarios_S9-S16.RData")
 ##D3
+set.seed(123)
 scenarios.S17_S24 = simulate_nma_data(data.D3, n.iter=1000)
 save(scenarios.S17_S24, file = "Simulated_Data/Scenarios_S17-S24.RData")
 ##D4
+set.seed(123)
 scenarios.S25_S32 = simulate_nma_data(data.D4, n.iter=1000)
 save(scenarios.S25_S32, file = "Simulated_Data/Scenarios_S25_S32.RData")
 

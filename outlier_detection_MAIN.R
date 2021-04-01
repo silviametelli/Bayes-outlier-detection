@@ -16,6 +16,10 @@ library(coda)
 library(INLA)
 library(nmaINLA)
 library(jagsUI)
+library(parallel)
+
+n.cores <- 4   # number of cores to use for parallel processing
+options(digits = 3)
 
 setwd("/Users/silvia/Google Drive/Paris AP/NMA Project/NMA Outliers/OUTLIER DETECTION CODES")
 #setwd("path-to-your-local-dir")

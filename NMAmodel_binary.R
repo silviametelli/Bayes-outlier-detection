@@ -23,12 +23,14 @@ NMAmodel_binary=function(){
       w[i,k] <- (delta[i,t[i,k]] - mean[i,k])
       sw[i,k] <- sum(w[i,1:(k-1)])/(k-1) ## cumulative adjustment for multi-arm trials
       precd[i, t[i, k]] <- prec *2*(k-1)/k ## precision of LORs (with multi-arm correction)
-      mean[i,k] <- (d[t[i,k]] - d[t[i,1]]) ## consistency eq.
+      mean[i,k] <- (d[t[i,k]] - d[t[i,1]]) ## consistency 
     }
   }
   
   dev_res_tot <- sum(dev_res[]) ## total residual deviance 
   
+  ##prior distribution for log-odds in baseline arm of study i
+  for (i in 1:ns) {u[i] ~ dnorm(0,.001)}
   ## prior for heterogeneity (precision for tau)
   tau ~ dunif(0,5)
   prec <- 1/pow(tau, 2)
