@@ -2,7 +2,7 @@
 #
 # TITLE: Bayesian model-based outlier detection in network meta analysis 
 # AUTHOR: Silvia Metelli
-# PURPOSE: Outlier detection with Bayes factors and PPPVs on NMAs with binary data 
+# PURPOSE: Outlier detection with Bayes factors and posterior predictive checks on NMA with binary data 
 #
 ###################################################################################################################### 
 ##required packages
@@ -16,15 +16,11 @@ library(coda)
 library(INLA)
 library(nmaINLA)
 library(jagsUI)
-library(parallel)
-
-n.cores <- 4   # number of cores to use for parallel processing
-options(digits = 3)
 
 setwd("/Users/silvia/Google Drive/Paris AP/NMA Project/NMA Outliers/OUTLIER DETECTION CODES")
-#setwd("path-to-your-local-dir")
+# setwd("path-to-your-local-dir")
 
-##### elements to be passed:
+##### elements to be passed to the functions:
 ## 1. treatments vector
 ## 2. study IDs 
 ## 3. number of event vector (if binary data)
@@ -38,23 +34,26 @@ source("make.jagsNMA.data.R")
 source("MCMC_run.R")
 
 #### type of data and parameters to save
-network = list()
-network$id = current_data$study
-network$treat = as.numeric(current_data$t)
-network$n_response = current_data$responders
-network$n_random = current_data$sampleSize
-network$ref = current_data_ref
-network$data_type = "binary"
+network <- list()
+network$id <- current_data$study
+network$treat <-  as.numeric(current_data$t)
+network$n_response <- current_data$responders
+network$n_random <-  current_data$sampleSize
+network$ref <-  current_data_ref
+network$data_type <-  "binary"
 
-MCMC_run("NMAmodel_binary") ## run jags module
+jags_object <- MCMC_run("NMAmodel_binary") ## run jags module
 
-traceplot(jags_object)
-results=jags_object$BUGSoutput$summary ## all results
+#traceplot(jags_object)
 
+results <- jags_object$BUGSoutput$summary ## all results
 ## get CIs
-all_names = rownames(results)
-resultstokeep = results[,c(1,3,7,2)]
+all_names <-  rownames(results)
+resultstokeep <- results[,c(1,3,7,2)]
+## league table
 
+leaguetable <- get_results(jags_object,"OR")
+leaguetable
 ########################################## run CV-Bayes factors search ############################################## 
 
 for(i in 1:max(network$id)){
