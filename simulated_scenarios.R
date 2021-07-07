@@ -1,7 +1,15 @@
 library(tidyverse)
 library(mvtnorm)
+library(parallel)
+library(foreach)
+library(doParallel)
 
-#---------------------------------* generate data  *-----------------------------------#
+# num cores 
+cores <- detectCores()
+cl <- makeCluster(cores[1]-2) #avoid overload
+registerDoParallel(cl)
+
+#-----------------------------------* generate data  *---------------------------------------#
 
 simulate_nma_data <- function(data, n.iter=10000){
   
@@ -9,7 +17,7 @@ simulate_nma_data <- function(data, n.iter=10000){
   n.outliers <- c(1, 3) ### n. outliers
   Np.min <- 50 ### min n. pts per arm
   Np.max <- 200 ### max n. pts per arm
-  ### true params
+  ### true thetas
   trueLOR <- c(0, seq(1/(N.t-1), 1, by = 1/(N.t-1)))
   trueOR <- c(1,exp(LOR))
   all_scenarios <- list()
@@ -18,7 +26,7 @@ simulate_nma_data <- function(data, n.iter=10000){
     simulated_data_t  <- list()
     for (o in 1:length(n.outliers)){
       simulated_data_o  <- list()
-      for (i in 1:n.iter){ 
+      foreach (i=1:n.iter,  .combine=c) %dopar% {
         nma <- list()
         data$n1 <- data$n2 <- round(runif(length(data$studlab), Np.min, Np.max), 0)
         for(j in 1:max(data$studlab)){
@@ -72,20 +80,18 @@ simulate_nma_data <- function(data, n.iter=10000){
    return(all_scenarios)
 }
 
+#-------------------------------* generate network geometries *-------------------------------#
 
-#-------------------------* generate network geometries (D0,D1,D2,D3,D4) *-------------------------#
-
-## balanced design fully connected (D0)
-N.t <- 5 #### n.treats
-N.s <- 10 #### n.stud per comparison
+## balanced design fully connected (D0) #not used
+N.t <- 5 #### n. treatments
+N.s <- 10 #### n. studies per comparison
 t1.1 <- c()
 t2.1 <- c()
 for (i in 1:(N.t-1)){
   for (k in (i+1):(N.t)){
     for(j in 1:N.s){
       t1.1 <- c(t1.1,i)
-      t2.1 <- c(t2.1,k) 
-    }}}
+      t2.1 <- c(t2.1,k)}}}
 ## balanced design fairly connected (D1)
 t1.1 <- c(rep(1,10),rep(1,10),rep(2,10),rep(3,10),rep(2,10),rep(2,10))
 t2.1 <- c(rep(2,10),rep(4,10),rep(3,10),rep(4,10),rep(4,10),rep(5,10))
@@ -101,6 +107,7 @@ t2.4 <- c(rep(2,1),rep(5,5),rep(4,4),rep(4,2),rep(4,1),rep(3,2))
 
 #-----------------------------------* generate network plots *---------------------------------#
 
+source("networkplot.R")
 png("~/simulated_nets.png", 1000, 300)
 par(mfrow=c(1,4))
 networkplot(as.character(t1.1), as.character(t2.1))
@@ -141,23 +148,26 @@ colnames(data.D4) <- c("t1", "t2", "studlab", "LOR")
 data.D4 <- data.D4[order(data.D4$studlab), ]
 
 
-# *--------------------------- save scenarios ------------------------------* #
+# *---------------------------------- save scenarios -------------------------------------* #
 
 ##D1
-set.seed(123)
-scenarios.S1_S8 = simulate_nma_data(data.D1, n.iter=1000)
-save(scenarios.S1_S8, file = "Simulated_Data/Scenarios_S1-S8.RData")
+set.seed(1234)
+scenarios.S1_S8 <- simulate_nma_data(data.D1, n.iter=1000)
+save(scenarios.S1_S8, file <- "Simulated_Data/Scenarios_S1-S8.RData")
+
 ##D2
-set.seed(123)
-scenarios.S9_S16 = simulate_nma_data(data.D2, n.iter=1000)
-save(scenarios.S9_S16, file = "Simulated_Data/Scenarios_S9-S16.RData")
+set.seed(1234)
+scenarios.S9_S16 <- simulate_nma_data(data.D2, n.iter=1000)
+save(scenarios.S9_S16, file <- "Simulated_Data/Scenarios_S9-S16.RData")
+
 ##D3
-set.seed(123)
-scenarios.S17_S24 = simulate_nma_data(data.D3, n.iter=1000)
-save(scenarios.S17_S24, file = "Simulated_Data/Scenarios_S17-S24.RData")
+set.seed(1234)
+scenarios.S17_S24 <- simulate_nma_data(data.D3, n.iter=1000)
+save(scenarios.S17_S24, file <- "Simulated_Data/Scenarios_S17-S24.RData")
+
 ##D4
-set.seed(123)
-scenarios.S25_S32 = simulate_nma_data(data.D4, n.iter=1000)
-save(scenarios.S25_S32, file = "Simulated_Data/Scenarios_S25_S32.RData")
+set.seed(1234)
+scenarios.S25_S32 <- simulate_nma_data(data.D4, n.iter=1000)
+save(scenarios.S25_S32, file <- "Simulated_Data/Scenarios_S25-S32.RData")
 
 
