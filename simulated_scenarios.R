@@ -4,10 +4,6 @@ library(parallel)
 library(foreach)
 library(doParallel)
 
-# num cores 
-cores <- detectCores()
-cl <- makeCluster(cores[1]-2) #avoid overload
-registerDoParallel(cl)
 
 #-----------------------------------* generate data  *---------------------------------------#
 
@@ -21,6 +17,11 @@ simulate_nma_data <- function(data, n.iter=10000){
   trueLOR <- c(0, seq(1/(N.t-1), 1, by = 1/(N.t-1)))
   trueOR <- c(1,exp(LOR))
   all_scenarios <- list()
+  
+  # num cores 
+  cores <- detectCores()
+  cl <- makeCluster(cores[1]-2) #avoid overload
+  registerDoParallel(cl)
   
   for (t in 1:length(tau2)){
     simulated_data_t  <- list()
@@ -72,6 +73,8 @@ simulate_nma_data <- function(data, n.iter=10000){
         nma[which(nma$studlab %in% studlab_out), ] <- nma_out
         simulated_data_o[[i]] <- nma
         rm(nma)
+        #stop cluster
+        stopCluster(cl)
       }
       simulated_data_t[[o]] <- simulated_data_o
     }
@@ -108,7 +111,7 @@ t2.4 <- c(rep(2,1),rep(5,5),rep(4,4),rep(4,2),rep(4,1),rep(3,2))
 #-----------------------------------* generate network plots *---------------------------------#
 
 source("networkplot.R")
-png("~/simulated_nets.png", 1000, 300)
+jpeg("~/simulated_nets.jpeg", units="in", res=800)
 par(mfrow=c(1,4))
 networkplot(as.character(t1.1), as.character(t2.1))
 networkplot(as.character(t1.2), as.character(t2.2))

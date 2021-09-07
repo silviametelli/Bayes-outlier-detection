@@ -1,8 +1,10 @@
-#### R function to produce network plots 
+#### TITLE: R function to produce network plots 
+#### AUTHOR: Silvia Metelli
+#### date: 15/04/2020
 
-# t1,t2 vectors of treatments (mandatory)
-# w.n, w.e weight factor for re-scaling of edge/node size (optional)
-# igraph arguments: layout_in_circle default, cex=1.0 default labels size etc (optional)
+# t1,t2 vectors of treatments (mandatory argument)
+# w.n, w.e weight factor for re-scaling of edge/node size (optional argument)
+# igraph arguments: layout_in_circle default, cex=1.0 default labels size etc (optional argument)
 
 networkplot = function(t1, t2, 
                        w.n=1.2, w.e=2,
@@ -14,7 +16,7 @@ networkplot = function(t1, t2,
                        colornodes="blue",
                        nodesize=8,
                        radscale=FALSE,
-                       vertexsize = FALSE,
+                       vertexsize=FALSE,
                        weightnodes=FALSE,
                        edgelabel=FALSE,
                        totnnodes=n.vec, 
@@ -51,11 +53,11 @@ networkplot = function(t1, t2,
   
   adj.matrix = get.adjacency(graph.edgelist(as.matrix(sorted_edges_full), directed=FALSE),type="lower")
   adj.matrix = adj.matrix[order(rownames(adj.matrix)), order(colnames(adj.matrix))]
-  g = graph_from_adjacency_matrix(adj.matrix, weighted=TRUE, mode="plus", diag=FALSE) ## direction doesn't count
+  g = graph_from_adjacency_matrix(adj.matrix, weighted=TRUE, mode="plus", diag=FALSE)  ##undirected network: modify for directed
   V(g)$name=sort(V(g)$name)
   
   if(weightnodes){
-    V(g)$size = n.vec$nvec} else{ V(g)$size= rep(nodesize,length(nodes))} ## deg = degree(g, mode="in")
+    V(g)$size = n.vec$nvec} else{ V(g)$size= rep(nodesize,length(nodes))}  ##deg=degree(g, mode="in")
   
   if(edgelabel){
     edgeweights=E(g)$weight
@@ -81,36 +83,36 @@ networkplot = function(t1, t2,
     vertex_size=(sqrt(V(g)$size)*1.2)
   }else{vertex_size=25}
   
-  plot.g =  plot(g, 
-                 vertex.label=c(paste0(wrap_strings(vnames,6))),
-                 vertex.size=vertex_size, 
-                 edge.width=E(g)$weight*w.e,
-                 vertex.label.font=vertex.label.font,
-                 edge.label.font=2,
-                 vertex.color= 'cornflowerblue',
-                 vertex.label.color='white',
-                 edge.label.color='black',
-                 edge.color="gray80",
-                 vertex.frame.color="white",
-                 edge.frame.color="black",
-                 vertex.label.family="Times", 
-                 edge.label.family = "Times",
-                 vertex.label.dist=vertex.label.dist,    
-                 vertex.label.degree=lab.locs,
-                 edge.label.color="skyblue2",
-                 vertex.label.color="black",
-                 vertex.color=colornodes,
-                 edge.color=coloredges,
-                 edge.label=c(paste0(edgeweights)),
-                 edge.label.degree=lab.locs,
-                 vertex.label.cex=cexnodes,
-                 edges.label.font=4,
-                 edge.label.cex = cexedges,
-                 layout=layout,
-                 asp = 1,
-                 loop.angle=20,
-                 keep_aspect_ratio=T,
-                 margin =0.25)
-  
+  plot.g = plot(g, 
+                vertex.label=c(paste0(wrap_strings(vnames,6))),
+                vertex.size=vertex_size*w.n, 
+                edge.width=E(g)$weight*w.e,
+                vertex.label.font=vertex.label.font,
+                edge.label.font=2,
+                vertex.color= 'cornflowerblue',
+                vertex.label.color='black',
+                edge.label.color='black',
+                edge.color="gray80",
+                vertex.frame.color="black",
+                edge.frame.color="black",
+                vertex.label.family="Times", 
+                edge.label.family = "Times",
+                vertex.label.dist=vertex.label.dist,    
+                vertex.label.degree=lab.locs,
+                edge.label.color="skyblue2",
+                vertex.label.color="black",
+                vertex.color=colornodes,
+                edge.color=coloredges,
+                edge.label=c(paste0(edgeweights)),
+                edge.label.degree=lab.locs,
+                vertex.label.cex=cexnodes,
+                edges.label.font=4,
+                edge.label.cex = cexedges,
+                layout=layout,
+                asp = 1.3,
+                loop.angle=20,
+                keep_aspect_ratio=T,
+                margin =0.25)
+
   return(plot.g)
 }
