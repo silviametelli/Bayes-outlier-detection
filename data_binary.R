@@ -8,7 +8,7 @@
 current_data <- read.csv("smoking_data.csv")
 colnames(current_data) <- c("study", "treatment", "responders", "sampleSize")
 current_data_ref <- "No_contract"
-colnames(current_data) <- c("study", "t","responders", "sampleSize")
+colnames(current_data) <- c("study", "t", "responders", "sampleSize")
 
 ######################################## NSCLC data (class level) ###############################################
 

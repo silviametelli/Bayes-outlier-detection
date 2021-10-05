@@ -4,7 +4,6 @@ library(parallel)
 library(foreach)
 library(doParallel)
 
-
 #-----------------------------------* generate data  *---------------------------------------#
 
 simulate_nma_data <- function(data, n.iter=10000){

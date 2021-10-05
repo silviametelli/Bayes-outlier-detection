@@ -20,17 +20,19 @@ library(jagsUI)
 
 setwd("/Users/silvia/Google Drive/Paris AP/NMA Project/NMA Outliers/OUTLIER DETECTION CODES")
 
-##### elements to be passed to the functions:
+##### elements to be passed:
 ## 1. treatments vector
 ## 2. study IDs 
 ## 3. number of event vector (if binary data)
-## 4. number of randomised participant vector (if binary data)
+## 4. number of randomized participant vector (if binary data)
 ## 5. OPTIONAL: reference treatment (if different from 1)
 
 #### simple MCMC model run 
 source("NMAmodel_binary.R")
 source("example_data_binary.R")
 source("make.jagsNMA.data.R")
+source("BF_search.R")
+source("pppc_search.R")
 source("MCMC_run.R")
 
 #### type of data and parameters to save
@@ -58,17 +60,11 @@ leaguetable
 
 for(i in 1:max(network$id)){
   
-  BF_list=BF_serch()
-  paste0("BF in favor of mean-shift model: ", 
-         round(1/mean(filter(ggs(codaSamples), Parameter == "m")$value) ,3))}
 
-# calculating bayes factor
-posterior.M <- unlist(jags.bf.out[,"M"])
-posterior.odds <- mean(posterior.M==1)/mean(posterior.M==2)
-prior.odds <- prior1/(1-prior1)
-bayes.factor <- posterior.odds/prior.odds
-bayes.factor
-#------------------------------------* run Bayes factors search #------------------------------------* 
+  
+  }
+
+#----------------------------------------* run pppc search #-----------------------------------------* 
 
 ppc_list=ppc_search()
 

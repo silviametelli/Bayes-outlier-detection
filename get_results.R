@@ -42,8 +42,7 @@ get_results <- function(JAGSobject,
                   diag(toprintmat) <- treatnames
                 }
                 
-                list(Means=meanmat,
-                     CI=CIs, 
+                list(Means=meanmat, CI=CIs, 
                      leaguetable=toprintmat)
 }
 
