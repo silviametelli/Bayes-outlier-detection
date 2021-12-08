@@ -20,7 +20,7 @@ NMAmodel_binary_BF=function(){
     dev_res[i] <- sum(dev[i,1:na[i]])  ## residual deviance D_res for each study
     
     for(k in 2:na[i]){
-      logit(p[i,t[i,k]]) <- mu[i] + delta[i,t[i,k]] + nu[i,t[i,k]] ## model for linear predictor
+      logit(p[i,t[i,k]]) <- mu[i] + delta[i,t[i,k]] +  nu[i,t[i,k]] ## model for linear predictor
       delta[i,t[i,k]] ~ dnorm(md[i,t[i,k]], precd[i,t[i,k]]) ## distribution of random effects (trial-specific LORs)
       
       ## account for correlation in multi-arm trials 

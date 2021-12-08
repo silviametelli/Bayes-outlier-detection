@@ -18,7 +18,7 @@ library(nmaINLA)
 library(jagsUI)
 #---------------------------------------------------------------------------------------------------------*
 
-setwd("/Users/silvia/Google Drive/Paris AP/NMA Project/NMA Outliers/OUTLIER DETECTION CODES")
+#setwd("/Users/silvia/Google Drive/Paris AP/NMA Project/NMA Outliers/Bayes NMA outliers codes")
 
 ##### elements to be passed:
 ## 1. treatments vector
@@ -31,7 +31,6 @@ setwd("/Users/silvia/Google Drive/Paris AP/NMA Project/NMA Outliers/OUTLIER DETE
 source("NMAmodel_binary.R")
 source("example_data_binary.R")
 source("make.jagsNMA.data.R")
-source("BF_search.R")
 source("pppc_search.R")
 source("MCMC_run.R")
 
