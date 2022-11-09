@@ -61,7 +61,7 @@ NMAmodel_binary=function(){
 delta.new[1] <- 0 
 w.new[1] <- 0 
 for (k in 2:nt) {
-  delta.new[k] ~ dnorm(m.new[k],tau.new[k])
+  yrep[k] ~ dnorm(m.new[k],tau.new[k])
   m.new[k] <- d[k] + sw.new[k]
   tau.new[k] <- tau *2*(k-1)/k
   w.new[k] <- delta.new[k] - d[k]
